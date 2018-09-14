@@ -1,6 +1,7 @@
 package xtime
 
 import (
+	"errors"
 	"time"
 )
 
@@ -39,78 +40,43 @@ func Time2DayEndTime(t time.Time) time.Time {
 	return ts.AddDate(0, 0, 1).Add(-1)
 }
 
-// //获取往后推几个月的月份
-// type YearMonthDays struct {
-// 	Year  int
-// 	Month int
-// 	Days  int
-// }
+// 依次解析字符串格式数组为时间戳(解析成功停止解析)
+type stampParser interface {
+	Parse(string) (int64, error)
+}
 
-// func GetMonthNo9BeforeNo(no int) *YearMonthDays {
-// 	ym := new(YearMonthDays)
-// 	t := time.Now().AddDate(0, -no, 0)
-// 	ym.Month, _ = strconv.Atoi(t.Format("1"))
-// 	ym.Year, _ = strconv.Atoi(t.Format("2006"))
-// 	ym.setDays()
-// 	return ym
-// }
+func NewStampParser(strs []string) stampParser {
+	return &parseStrs2Stamp{strs}
+}
 
-// // 获取指定月份的天数,如果为当月获取当月到当天的天数
-// func (ymd *YearMonthDays) setDays() {
-// 	if ok, days := ymd.isCurrentMonth(); ok {
-// 		ymd.Days = days
-// 		return
+type parseStrs2Stamp struct {
+	strs []string //初始化可以解析的字符串数组
+}
+
+func (p *parseStrs2Stamp) Parse(str string) (int64, error) {
+	for _, v := range p.strs {
+		if tm, err := time.Parse(v, str); err == nil {
+			return tm.Unix(), nil
+		}
+	}
+	return 0, errors.New("要解析的格式失败:" + str)
+}
+
+// func ParseStrs2Stamp(strs []string) int64 {
+// 	if str == "" {
+// 		return 0
 // 	}
-// 	if ymd.Month != 2 {
-// 		if ymd.Month == 4 || ymd.Month == 6 || ymd.Month == 9 || ymd.Month == 11 {
-// 			ymd.Days = 30
-// 		} else {
-// 			ymd.Days = 31
-// 		}
-// 	} else {
-// 		if ((ymd.Year%4) == 0 && (ymd.Year%100) != 0) || (ymd.Year%400) == 0 {
-// 			ymd.Days = 29
-// 		} else {
-// 			ymd.Days = 28
-// 		}
+// 	if tm, err := time.Parse("2006/1/2 15:04", str); err == nil {
+// 		return tm.Unix()
 // 	}
-// }
-
-// // 判断是否为当月,是当月返回当月已过的天数
-// func (y *YearMonthDays) isCurrentMonth() (bool, int) {
-// 	now := time.Now()
-// 	year := now.Year()
-// 	month, _ := strconv.Atoi(now.Format("1"))
-// 	if year == y.Year && month == y.Month {
-// 		return true, now.Day()
+// 	if tm, err := time.Parse("2006/1/2", str); err == nil {
+// 		return tm.Unix()
 // 	}
-// 	return false, 0
-// }
-
-// // 获取年月开始的一天的0点时间戳
-// func (y *YearMonthDays) GetYearMonthStartDayZeroStamp() int64 {
-// 	ym := strconv.Itoa(y.Year) + strconv.Itoa(y.Month)
-// 	t, err := time.Parse("20061", ym)
-// 	if err != nil {
-// 		log.Println(err)
-// 		panic(err.Error())
+// 	if tm, err := time.Parse("2006-01-02 15:04:05", str); err == nil {
+// 		return tm.Unix()
 // 	}
-// 	return t.Unix()
-// }
-
-// // 获取年月最后一天的结束点时间戳
-// func (y *YearMonthDays) GetYearMonthEndDayEndStamp() int64 {
-// 	ymd := strconv.Itoa(y.Year) + "-" + strconv.Itoa(y.Month) + "-" + strconv.Itoa(y.Days)
-// 	t, err := time.Parse("2006-1-2", ymd)
-// 	if err != nil {
-// 		log.Println(err)
-// 		panic(err.Error())
+// 	if tm, err := time.Parse("2006-01-02", str); err == nil {
+// 		return tm.Unix()
 // 	}
-// 	t = t.AddDate(0, 0, 1).Add(-1)
-// 	return t.Unix()
-// }
-
-// // 根据年的月份获取起止时间戳
-// func (y *YearMonthDays) GetMonthStartEndStamp() []int64 {
-// 	return []int64{y.GetYearMonthStartDayZeroStamp(), y.GetYearMonthEndDayEndStamp()}
+// 	panic("时间戳解释失败:" + "'" + str + "'")
 // }
