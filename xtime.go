@@ -2,6 +2,7 @@ package xtime
 
 import (
 	"errors"
+	"math"
 	"time"
 )
 
@@ -50,7 +51,7 @@ func NewStampParser(strs []string) stampParser {
 }
 
 type parseStrs2Stamp struct {
-	strs []string //初始化可以解析的字符串数组
+	strs []string //可以解析的字符串数组
 }
 
 func (p *parseStrs2Stamp) Parse(str string) (int64, error) {
@@ -62,21 +63,9 @@ func (p *parseStrs2Stamp) Parse(str string) (int64, error) {
 	return 0, errors.New("要解析的格式失败:" + str)
 }
 
-// func ParseStrs2Stamp(strs []string) int64 {
-// 	if str == "" {
-// 		return 0
-// 	}
-// 	if tm, err := time.Parse("2006/1/2 15:04", str); err == nil {
-// 		return tm.Unix()
-// 	}
-// 	if tm, err := time.Parse("2006/1/2", str); err == nil {
-// 		return tm.Unix()
-// 	}
-// 	if tm, err := time.Parse("2006-01-02 15:04:05", str); err == nil {
-// 		return tm.Unix()
-// 	}
-// 	if tm, err := time.Parse("2006-01-02", str); err == nil {
-// 		return tm.Unix()
-// 	}
-// 	panic("时间戳解释失败:" + "'" + str + "'")
-// }
+/*
+两个时间戳相差的天数
+*/
+func DaysBetweenStamp(s1, s2 int64) int {
+	return int(math.Abs(time.Unix(s1, 0).Sub(time.Unix(s2, 0)).Hours() / 24))
+}
